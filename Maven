@@ -153,15 +153,16 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'
-        jdk 'JDK17'
+        maven 'Maven'
+        jdk 'JDK21'
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/Naveen04jan/demo-app.git'
+                git branch: 'master', url:'https://github.com/KhushiJigali/maven-demo.git',
+                credentialsId: 'github-token'
             }
         }
 
@@ -181,6 +182,16 @@ pipeline {
             steps {
                 sh 'mvn package'
             }
+        
+        
+        }
+        stage('Run Application') {
+            steps {
+                sh 'mvn exec:java -Dexec.mainClass="com.example.app.App"'
+            }
         }
     }
 }
+
+
+#EMAIL NOTIFICATION
