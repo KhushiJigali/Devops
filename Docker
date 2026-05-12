@@ -48,3 +48,55 @@ git branch -M main
 git remote add origin https://github.com/KhushiJigali/docker.git
 git push -u origin main
 
+
+JENKINS FILE:
+pipeline {
+    agent any
+
+    environment {
+        // Jenkins Credentials ID
+        DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
+
+        // Your Docker Hub username/repo
+        APP_NAME = "khushijigali/dockerexperiment"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} ."
+                }
+            }
+        }
+
+        stage('Login and Push') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${DOCKERHUB_CREDENTIALS}",
+                        passwordVariable: 'PASS',
+                        usernameVariable: 'USER'
+                    )
+                ]) {
+
+                    sh "echo ${PASS} | docker login -u ${USER} --password-stdin"
+
+                    sh "docker push ${APP_NAME}:${BUILD_NUMBER}"
+
+                    // Optional latest tag
+                    sh "docker tag ${APP_NAME}:${BUILD_NUMBER} ${APP_NAME}:latest"
+
+                    sh "docker push ${APP_NAME}:latest"
+                }
+            }
+        }
+    }
+}
